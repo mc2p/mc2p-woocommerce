@@ -28,3 +28,7 @@ The manual installation method involves downloading our plugin and uploading it 
 = Updating =
 
 Automatic updates should work like a charm; as always though, ensure you backup your site just in case.
+
+= Use =
+
+To use the plugin you need to register in [MyChoice2Pay](https://www.mychoice2pay.com) and get the credentials of your application.
