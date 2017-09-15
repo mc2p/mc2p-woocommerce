@@ -66,7 +66,7 @@ add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'wc_mc2p_gatew
  * @author 		MyChoice2Pay
  */
 
-$autoloader_param = __DIR__ . '/vendor/autoload.php';
+$autoloader_param = __DIR__ . '/lib/MC2P/MC2PClient.php';
 // Load up the MC2P library
 if (true === file_exists($autoloader_param) &&
     true === is_readable($autoloader_param))
@@ -150,7 +150,7 @@ function wc_mc2p_gateway_init() {
                 'key' => array(
                     'title'       => __( 'Key', 'wc-gateway-mc2p' ),
                     'type'        => 'text',
-                    'description' => __( 'Key obtained in MyChoice2Pay.', 'wc-gateway-mc2p' ),
+                    'description' => __( 'Key obtained in MyChoice2Pay.com', 'wc-gateway-mc2p' ),
                     'default'     => '',
                     'desc_tip'    => true,
                 ),
@@ -158,7 +158,7 @@ function wc_mc2p_gateway_init() {
                 'secret_key' => array(
                     'title'       => __( 'Secret Key', 'wc-gateway-mc2p' ),
                     'type'        => 'text',
-                    'description' => __( 'Secret Key obtained in MyChoice2Pay.', 'wc-gateway-mc2p' ),
+                    'description' => __( 'Secret Key obtained in MyChoice2Pay.com', 'wc-gateway-mc2p' ),
                     'default'     => '',
                     'desc_tip'    => true,
                 ),
@@ -166,7 +166,7 @@ function wc_mc2p_gateway_init() {
                 'title' => array(
                     'title'       => __( 'Title', 'wc-gateway-mc2p' ),
                     'type'        => 'text',
-                    'description' => __( 'This controls the title for the payment method the customer sees during checkout.', 'wc-gateway-mc2p' ),
+                    'description' => __( 'This controls the title for the payment method the customer sees during checkout', 'wc-gateway-mc2p' ),
                     'default'     => __( 'MyChoice2Pay', 'wc-gateway-mc2p' ),
                     'desc_tip'    => true,
                 ),
@@ -174,15 +174,15 @@ function wc_mc2p_gateway_init() {
                 'description' => array(
                     'title'       => __( 'Description', 'wc-gateway-mc2p' ),
                     'type'        => 'textarea',
-                    'description' => __( 'Payment method description that the customer will see on your checkout.', 'wc-gateway-mc2p' ),
-                    'default'     => __( 'Select among several payment gateways the one that works best for you in MyChoice2Pay', 'wc-gateway-mc2p' ),
+                    'description' => __( 'Payment method description that the customer will see on your checkout', 'wc-gateway-mc2p' ),
+                    'default'     => __( 'Select among several payment methods the one that works best for you in MyChoice2Pay', 'wc-gateway-mc2p' ),
                     'desc_tip'    => true,
                 ),
 
                 'thank_you_text' => array(
                     'title'       => __( 'Text in thank you page', 'wc-gateway-mc2p' ),
                     'type'        => 'textarea',
-                    'description' => __( 'Text that will be added to the thank you page.', 'wc-gateway-mc2p' ),
+                    'description' => __( 'Text that will be added to the thank you page', 'wc-gateway-mc2p' ),
                     'default'     => '',
                     'desc_tip'    => true,
                 ),
@@ -304,7 +304,7 @@ function wc_mc2p_gateway_init() {
                         }
                     } else if ( $notification_data->getStatus() == 'C' ) {
                         // Order failed
-                        $message = __('Payment cancelled.', 'wc-gateway-mc2p');
+                        $message = __('MC2P payment cancelled', 'wc-gateway-mc2p');
                         $order->update_status('failed', $message );
                     }
                 }
