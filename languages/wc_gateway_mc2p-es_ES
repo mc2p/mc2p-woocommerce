@@ -1,0 +1,71 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: WC_Gateway_MC2P v0.1\n"
+"Last-Translator: MyChoice2Pay\n"
+"Language-Team: \n"
+"Language: es_ES\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+msgid "MyChoice2Pay"
+msgstr "MyChoice2Pay"
+
+msgid ""
+"Allows to receive payments from several payment gateways while offering the "
+"possibility of dividing payments between several people."
+msgstr ""
+"Permite recibir pagos de varias pasarelas de pago ofreciendo también "
+"la posibilidad de dividir los pagos entre varias personas."
+
+msgid "Enable/Disable"
+msgstr "Habilitar/Deshabilitar"
+
+msgid "Enable MyChoice2Pay Gateway"
+msgstr "Habilitar la pasarela MyChoice2Pay"
+
+msgid "Key"
+msgstr "Key"
+
+msgid "Key obtained in MyChoice2Pay.com"
+msgstr "Key obtenida en MyChoice2Pay.com"
+
+msgid "Secret Key"
+msgstr "Secret Key"
+
+msgid "Secret Key obtained in MyChoice2Pay.com"
+msgstr "Secret Key obtenida en MyChoice2Pay.com"
+
+msgid "Title"
+msgstr "Título"
+
+msgid "Description"
+msgstr "Descripción"
+
+msgid "This controls the title for the payment method the customer sees during checkout"
+msgstr "Esto controla el título que el usuario ve durante la finalización de la compra"
+
+msgid "Payment method description that the customer will see on your checkout"
+msgstr "Descripción del método de pago que el usuario ve durante la finalización de la compra"
+
+msgid "Select among several payment methods the one that works best for you in MyChoice2Pay"
+msgstr "Seleccione entre varios métodos de pago el que mejor funcione para usted en MyChoice2Pay"
+
+msgid "Text in thank you page"
+msgstr "Texto en página de gracias"
+
+msgid "Text that will be added to the thank you page"
+msgstr "Este texto será añadido en la página de gracias"
+
+msgid "Payment of order "
+msgstr "Pago del pedido "
+
+msgid "Awaiting MC2P payment"
+msgstr "Esperando el pago en MC2P"
+
+msgid "MC2P payment completed"
+msgstr "Pago en MC2P completado"
+
+msgid "MC2P payment cancelled"
+msgstr "Pago en MC2P cancelado"
