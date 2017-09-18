@@ -12,7 +12,7 @@ MyChoice2Pay allows using several payment gateways while offering the possibilit
 Include Divvy gateway. With Divvy your clients can divide online payments, and subscriptions with friends, family, co-workers...
 
 == Installation ==
-You can download an from here: https://wordpress.org/plugins/woocommerce-gateway-mc2p/developers/.
+You can download an from here: https://wordpress.org/plugins/woo-gateway-mc2p/developers/.
 
 = Automatic installation =
 
