@@ -68,11 +68,9 @@ add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'wc_mc2p_gatew
 
 $autoloader_param = __DIR__ . '/lib/MC2P/MC2PClient.php';
 // Load up the MC2P library
-if (true === file_exists($autoloader_param) &&
-    true === is_readable($autoloader_param))
-{
+try {
     require_once $autoloader_param;
-} else {
+} catch (\Exception $e) {
     throw new \Exception('The MC2P payment plugin was not installed correctly or the files are corrupt. Please reinstall the plugin. If this message persists after a reinstall, contact hola@mychoice2pay.com with this message.');
 }
 
