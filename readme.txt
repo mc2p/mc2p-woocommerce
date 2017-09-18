@@ -32,3 +32,9 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 = Use =
 
 To use the plugin you need to register in [MyChoice2Pay](https://www.mychoice2pay.com) and get the credentials of your application.
+
+== Screenshots ==
+
+1. Plugin in Wordpress Dashboard. You have to click on Install now button.
+2. Configuration page of plugin. Manage your keys and display options.
+3. Display Pay with MyChoice2Pay on the shopping cart page.
