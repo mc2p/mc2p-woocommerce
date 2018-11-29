@@ -77,6 +77,11 @@ try {
 add_action( 'plugins_loaded', 'wc_mc2p_gateway_init', 11 );
 function wc_mc2p_gateway_init() {
     class WC_Gateway_MC2P extends WC_Payment_Gateway {
+
+        public $supports = array(
+            'subscriptions'
+        );
+
         /**
          * Constructor for the gateway.
          */
@@ -208,6 +213,8 @@ function wc_mc2p_gateway_init() {
 
             $order = wc_get_order( $order_id );
 
+            $product = getProductFromOrder( $order );
+
             $mc2p = new MC2P\MC2PClient($this->key, $this->secret_key);
 
             // Language
@@ -224,6 +231,38 @@ function wc_mc2p_gateway_init() {
                     break;
                 }
             }
+
+            if( class_exists( 'WC_Subscriptions_Order' ) && WC_Subscriptions_Order::order_contains_subscription( $order_id ) ) {
+                $result = $this->process_subscription_payment( $mc2p, $order, $language, $product );
+            } else {
+                $result = $this->process_regular_payment( $mc2p, $order, $language, $product );
+            }
+
+            // Mark as on-hold (we're awaiting the payment)
+            $order->update_status( 'on-hold', __( 'Awaiting MC2P payment', 'wc-gateway-mc2p' ) );
+
+            // Reduce stock levels
+            $order->reduce_order_stock();
+
+            if ( version_compare( WOOCOMMERCE_VERSION, '2.0', '<' ) ) {
+                $woocommerce->cart->empty_cart();
+            } else {
+                WC()->cart->empty_cart();
+            }
+
+            return result;
+        }
+
+
+        /**
+         * Process regular payment and return the result
+         *
+         * @param object $mc2p
+         * @param object $order
+         * @param string $language
+         * @return array
+         */
+        public function process_regular_payment( $mc2p, $order, $language, $product ) {
 
             // Create transaction
             $transaction = $mc2p->Transaction(
@@ -247,22 +286,60 @@ function wc_mc2p_gateway_init() {
             );
             $transaction->save();
 
-            // Mark as on-hold (we're awaiting the payment)
-            $order->update_status( 'on-hold', __( 'Awaiting MC2P payment', 'wc-gateway-mc2p' ) );
-
-            // Reduce stock levels
-            $order->reduce_order_stock();
-
-            if ( version_compare( WOOCOMMERCE_VERSION, '2.0', '<' ) ) {
-                $woocommerce->cart->empty_cart();
-            } else {
-                WC()->cart->empty_cart();
-            }
-
             return array(
                 'result' 	=> 'success',
                 'redirect'	=> $transaction->getPayUrl()
             );
+        }
+
+
+        /**
+         * Process subscription payment and return the result
+         *
+         * @param object $mc2p
+         * @param object $order
+         * @param string $language
+         * @return array
+         */
+        public function process_subscription_payment( $mc2p, $order, $language, $product ) {
+
+            // Create transaction
+            $subscription = $mc2p->Subscription(
+                array(
+                    "order_id" => $order_id,
+                    "currency" => get_woocommerce_currency(),
+                    "return_url"  => $this->get_return_url($order),
+                    "cancel_url" => $order->get_cancel_order_url(),
+                    "notify_url" => $this->notify_url,
+                    "language" => $language,
+                    "plan" => array(
+                        "name" => __('Payment of order ', 'wc-gateway-mc2p').$order_id,
+                        "price" => WC_Subscriptions_Product::get_price( $product ),
+                        "duration" => WC_Subscriptions_Product::get_length( $product ),
+                        "unit" => substr(WC_Subscriptions_Product::get_period( $product ), 0, 1),
+                        "recurring" => True
+                    )
+                )
+            );
+            $subscription->save();
+
+            return array(
+                'result' 	=> 'success',
+                'redirect'	=> $subscription->getPayUrl()
+            );
+        }
+
+        /**
+         * Get product from order
+         *
+         * @param object $order
+         * @return object
+         */
+        public function getProductFromOrder($order)
+        {
+            $products = $order->get_items();
+            $count = $order->get_item_count();
+            return array_values($products)[0];
         }
 
         /**
