@@ -213,8 +213,6 @@ function wc_mc2p_gateway_init() {
 
             $order = wc_get_order( $order_id );
 
-            $product = getProductFromOrder( $order );
-
             $mc2p = new MC2P\MC2PClient($this->key, $this->secret_key);
 
             // Language
@@ -233,9 +231,9 @@ function wc_mc2p_gateway_init() {
             }
 
             if( class_exists( 'WC_Subscriptions_Order' ) && WC_Subscriptions_Order::order_contains_subscription( $order_id ) ) {
-                $result = $this->process_subscription_payment( $mc2p, $order, $language, $product );
+                $result = $this->process_subscription_payment( $mc2p, $order, $language);
             } else {
-                $result = $this->process_regular_payment( $mc2p, $order, $language, $product );
+                $result = $this->process_regular_payment( $mc2p, $order, $language);
             }
 
             // Mark as on-hold (we're awaiting the payment)
@@ -250,7 +248,7 @@ function wc_mc2p_gateway_init() {
                 WC()->cart->empty_cart();
             }
 
-            return result;
+            return $result;
         }
 
 
@@ -262,14 +260,14 @@ function wc_mc2p_gateway_init() {
          * @param string $language
          * @return array
          */
-        public function process_regular_payment( $mc2p, $order, $language, $product ) {
+        public function process_regular_payment( $mc2p, $order, $language ) {
 
             // Create transaction
             $transaction = $mc2p->Transaction(
                 array(
                     "order_id" => $order_id,
                     "currency" => get_woocommerce_currency(),
-                    "return_url"  => $this->get_return_url($order),
+                    "return_url"  => $this->get_return_url( $order ),
                     "cancel_url" => $order->get_cancel_order_url(),
                     "notify_url" => $this->notify_url,
                     "language" => $language,
@@ -301,22 +299,50 @@ function wc_mc2p_gateway_init() {
          * @param string $language
          * @return array
          */
-        public function process_subscription_payment( $mc2p, $order, $language, $product ) {
+        public function process_subscription_payment( $mc2p, $order, $language ) {
+
+            $unconverted_periods = array(
+                'period'        => WC_Subscriptions_Order::get_subscription_period( $order ),
+                'trial_period'  => WC_Subscriptions_Order::get_subscription_trial_period( $order )
+            );
+
+            $converted_periods = array();
+            foreach ( $unconverted_periods as $key => $period ) {
+                switch( strtolower( $period ) ) {
+                    case 'day':
+                        $converted_periods[$key] = 'D';
+                        break;
+                    case 'week':
+                        $converted_periods[$key] = 'W';
+                        break;
+                    case 'year':
+                        $converted_periods[$key] = 'Y';
+                        break;
+                    case 'month':
+                    default:
+                        $converted_periods[$key] = 'M';
+                        break;
+                }
+            }
+
+            $period = $converted_periods['period'];
+            $duration = WC_Subscriptions_Order::get_subscription_interval( $order );
+            $price = WC_Subscriptions_Order::get_total_initial_payment( $order );
 
             // Create transaction
             $subscription = $mc2p->Subscription(
                 array(
                     "order_id" => $order_id,
                     "currency" => get_woocommerce_currency(),
-                    "return_url"  => $this->get_return_url($order),
+                    "return_url"  => $this->get_return_url( $order ),
                     "cancel_url" => $order->get_cancel_order_url(),
                     "notify_url" => $this->notify_url,
                     "language" => $language,
                     "plan" => array(
-                        "name" => __('Payment of order ', 'wc-gateway-mc2p').$order_id,
-                        "price" => WC_Subscriptions_Product::get_price( $product ),
-                        "duration" => WC_Subscriptions_Product::get_length( $product ),
-                        "unit" => substr(WC_Subscriptions_Product::get_period( $product ), 0, 1),
+                        "name" => __('Subscription of order ', 'wc-gateway-mc2p').$order_id,
+                        "price" => $price,
+                        "duration" => $duration,
+                        "unit" => $period,
                         "recurring" => True
                     )
                 )
@@ -327,19 +353,6 @@ function wc_mc2p_gateway_init() {
                 'result' 	=> 'success',
                 'redirect'	=> $subscription->getPayUrl()
             );
-        }
-
-        /**
-         * Get product from order
-         *
-         * @param object $order
-         * @return object
-         */
-        public function getProductFromOrder($order)
-        {
-            $products = $order->get_items();
-            $count = $order->get_item_count();
-            return array_values($products)[0];
         }
 
         /**
