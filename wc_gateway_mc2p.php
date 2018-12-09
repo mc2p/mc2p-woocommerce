@@ -103,6 +103,7 @@ function wc_mc2p_gateway_init() {
             $this->secret_key   = $this->get_option( 'secret_key' );
             $this->description  = $this->get_option( 'description' );
             $this->thank_you_text = $this->get_option( 'thank_you_text', $this->description );
+            $this->set_completed = $this->get_option( 'set_completed', 'N' );
 
             // Actions
             add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
@@ -189,6 +190,17 @@ function wc_mc2p_gateway_init() {
                     'default'     => '',
                     'desc_tip'    => true,
                 ),
+                'set_completed' => array(
+                    'title'       => __( 'Set order as completed after payment?', 'wc-gateway-mc2p' ),
+                    'type'        => 'select',
+                    'description' => __( 'After payment, should the order be set as completed? Default is "processing".', 'wc-gateway-mc2p' ),
+                    'desc_tip'    => false,
+                    'options'     => array(
+                        'N' => __( 'No', 'wc-gateway-mc2p' ),
+                        'Y' => __( 'Yes', 'wc-gateway-mc2p' ),
+                    ),
+                    'default'     => 'N'
+                ),
             ) );
         }
 
@@ -231,16 +243,13 @@ function wc_mc2p_gateway_init() {
             }
 
             if( class_exists( 'WC_Subscriptions_Order' ) && WC_Subscriptions_Order::order_contains_subscription( $order_id ) ) {
-                $result = $this->process_subscription_payment( $mc2p, $order, $language);
+                $result = $this->process_subscription_payment( $mc2p, $order, $language, $order_id );
             } else {
-                $result = $this->process_regular_payment( $mc2p, $order, $language);
+                $result = $this->process_regular_payment( $mc2p, $order, $language, $order_id );
             }
 
             // Mark as on-hold (we're awaiting the payment)
             $order->update_status( 'on-hold', __( 'Awaiting MC2P payment', 'wc-gateway-mc2p' ) );
-
-            // Reduce stock levels
-            $order->reduce_order_stock();
 
             if ( version_compare( WOOCOMMERCE_VERSION, '2.0', '<' ) ) {
                 $woocommerce->cart->empty_cart();
@@ -260,7 +269,7 @@ function wc_mc2p_gateway_init() {
          * @param string $language
          * @return array
          */
-        public function process_regular_payment( $mc2p, $order, $language ) {
+        public function process_regular_payment( $mc2p, $order, $language, $order_id ) {
 
             // Create transaction
             $transaction = $mc2p->Transaction(
@@ -299,7 +308,7 @@ function wc_mc2p_gateway_init() {
          * @param string $language
          * @return array
          */
-        public function process_subscription_payment( $mc2p, $order, $language ) {
+        public function process_subscription_payment( $mc2p, $order, $language, $order_id ) {
 
             $unconverted_periods = array(
                 'period'        => WC_Subscriptions_Order::get_subscription_period( $order ),
