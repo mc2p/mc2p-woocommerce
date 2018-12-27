@@ -58,6 +58,22 @@ msgstr "Texto en página de gracias"
 msgid "Text that will be added to the thank you page"
 msgstr "Este texto será añadido en la página de gracias"
 
+msgid "Set order as completed after payment?"
+msgstr "¿Marcar el pedido como completado tras el pago?"
+
+msgid ""
+"After payment, should the order be set as completed? Default is \"processing"
+"\"."
+msgstr ""
+"Tras el pago, ¿deseas marcar el pedido como completado? El valor por defecto "
+"es \"procesando\"."
+
+msgid "No"
+msgstr "No"
+
+msgid "Yes"
+msgstr "Sí"
+
 msgid "Payment of order "
 msgstr "Pago del pedido "
 
