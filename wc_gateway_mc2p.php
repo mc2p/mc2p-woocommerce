@@ -271,6 +271,16 @@ function wc_mc2p_gateway_init() {
          */
         public function process_regular_payment( $mc2p, $order, $language, $order_id ) {
 
+			$country = '';
+			$email = '';
+			if ( version_compare( WOOCOMMERCE_VERSION, '3.0', '<' ) ) {
+                $country = $order->billing_country;
+				$email = $order->billing_email;
+            } else {
+                $country = $order->get_billing_country();
+				$email = $order->get_billing_email();
+            }
+
             // Create transaction
             $transaction = $mc2p->Transaction(
                 array(
@@ -288,7 +298,11 @@ function wc_mc2p_gateway_init() {
                                 "price" => $order->get_total()
                             )
                         )
-                    )
+                    ),
+					"extra" => array(
+						"email" => $email,
+						"country" => $country
+					)
                 )
             );
             $transaction->save();
@@ -309,6 +323,16 @@ function wc_mc2p_gateway_init() {
          * @return array
          */
         public function process_subscription_payment( $mc2p, $order, $language, $order_id ) {
+
+			$country = '';
+			$email = '';
+			if ( version_compare( WOOCOMMERCE_VERSION, '3.0', '<' ) ) {
+                $country = $order->billing_country;
+				$email = $order->billing_email;
+            } else {
+                $country = $order->get_billing_country();
+				$email = $order->get_billing_email();
+            }
 
             $unconverted_periods = array(
                 'period'        => WC_Subscriptions_Order::get_subscription_period( $order ),
@@ -353,7 +377,11 @@ function wc_mc2p_gateway_init() {
                         "duration" => $duration,
                         "unit" => $period,
                         "recurring" => True
-                    )
+                    ),
+					"extra" => array(
+						"email" => $email,
+						"country" => $country
+					)
                 )
             );
             $subscription->save();
