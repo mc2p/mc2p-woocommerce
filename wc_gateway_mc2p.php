@@ -103,6 +103,7 @@ function wc_mc2p_gateway_init() {
             $this->secret_key   = $this->get_option( 'secret_key' );
             $this->description  = $this->get_option( 'description' );
             $this->thank_you_text = $this->get_option( 'thank_you_text', $this->description );
+            $this->way = $this->get_option( 'way', 'redirect' );
             $this->set_completed = $this->get_option( 'set_completed', 'N' );
             $this->icon = $this->get_option( 'icon', $this->icon );
 
@@ -135,6 +136,8 @@ function wc_mc2p_gateway_init() {
                 add_action( 'woocommerce_api_' . strtolower( get_class( $this ) ), array( $this, 'check_notification' ) );
                 add_action('woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
             }
+
+            add_action( 'woocommerce_receipt_mc2p_gateway', array( $this, 'receipt_page' ) );
         }
 
 
@@ -191,6 +194,16 @@ function wc_mc2p_gateway_init() {
                     'default'     => '',
                     'desc_tip'    => true,
                 ),
+                'way' => array(
+                    'title'       => __( 'Integration', 'wc-gateway-mc2p' ),
+                    'type'        => 'select',
+                    'description' => __( 'Way to integrate MyChoice2Pay.', 'wc-gateway-mc2p' ),
+                    'options'     => array(
+                        'redirect' => __( 'Redirect', 'wc-gateway-mc2p' ),
+                        'iframe' => __( 'iFrame', 'wc-gateway-mc2p' )
+                    ),
+                    'default'     => 'redirect'
+                ),
                 'set_completed' => array(
                     'title'       => __( 'Set order as completed after payment?', 'wc-gateway-mc2p' ),
                     'type'        => 'select',
@@ -217,6 +230,12 @@ function wc_mc2p_gateway_init() {
          * Output for the order received page.
          */
         public function thankyou_page() {
+            if ( version_compare( WOOCOMMERCE_VERSION, '2.0', '<' ) ) {
+                $woocommerce->cart->empty_cart();
+            } else {
+                WC()->cart->empty_cart();
+            }
+
             if ( $this->thank_you_text ) {
                 echo wpautop( wptexturize( $this->thank_you_text ) );
             }
@@ -230,6 +249,37 @@ function wc_mc2p_gateway_init() {
          * @return array
          */
         public function process_payment( $order_id ) {
+
+            if ( $this->way == 'redirect' ) {
+                return $this->start_process_payment( $order_id );
+            }
+
+            $order = wc_get_order( $order_id );
+
+            if ( version_compare( WOOCOMMERCE_VERSION, '2.1', '<' ) ) {
+                $redirect_url = add_query_arg('order', $order->id, add_query_arg('key', $order->order_key, get_permalink(woocommerce_get_page_id('pay'))));
+            } else {
+                $redirect_url = $order->get_checkout_payment_url( true );
+            }
+
+            return array(
+                    'result'        => 'success',
+                    'redirect'      => $redirect_url
+            );
+        }
+
+        function receipt_page( $order_id ) {
+            return $this->start_process_payment( $order_id );
+        }
+
+
+        /**
+         * Process the payment and return the result
+         *
+         * @param int $order_id
+         * @return array
+         */
+        public function start_process_payment( $order_id ) {
 
             $order = wc_get_order( $order_id );
 
@@ -251,21 +301,19 @@ function wc_mc2p_gateway_init() {
             }
 
             if( class_exists( 'WC_Subscriptions_Order' ) && WC_Subscriptions_Order::order_contains_subscription( $order_id ) ) {
-                $result = $this->process_subscription_payment( $mc2p, $order, $language, $order_id );
+                $obj = $this->process_subscription_payment( $mc2p, $order, $language, $order_id );
             } else {
-                $result = $this->process_regular_payment( $mc2p, $order, $language, $order_id );
+                $obj = $this->process_regular_payment( $mc2p, $order, $language, $order_id );
             }
 
-            // Mark as on-hold (we're awaiting the payment)
-            $order->update_status( 'on-hold', __( 'Awaiting MC2P payment', 'wc-gateway-mc2p' ) );
-
-            if ( version_compare( WOOCOMMERCE_VERSION, '2.0', '<' ) ) {
-                $woocommerce->cart->empty_cart();
+            if ( $this->way == 'iframe' ) {
+				echo '<iframe src="'.$obj->getIframeUrl().'" frameBorder="0" style="width: 100%; height: 700px"></iframe>';
             } else {
-                WC()->cart->empty_cart();
-            }
-
-            return $result;
+				return array(
+					'result' 	=> 'success',
+					'redirect'	=> $obj->getPayUrl()
+				);
+			}
         }
 
 
@@ -315,10 +363,7 @@ function wc_mc2p_gateway_init() {
             );
             $transaction->save();
 
-            return array(
-                'result' 	=> 'success',
-                'redirect'	=> $transaction->getPayUrl()
-            );
+            return $transaction;
         }
 
 
@@ -394,10 +439,7 @@ function wc_mc2p_gateway_init() {
             );
             $subscription->save();
 
-            return array(
-                'result' 	=> 'success',
-                'redirect'	=> $subscription->getPayUrl()
-            );
+            return $subscription;
         }
 
         /**
