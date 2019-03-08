@@ -88,7 +88,7 @@ function wc_mc2p_gateway_init() {
         public function __construct() {
 
             $this->id                 = 'mc2p_gateway';
-            $this->icon               = apply_filters( 'woocommerce_mc2p_icon', plugins_url( 'assets/images/icons/mc2p.png' , __FILE__ ) );;
+            $this->icon               = apply_filters( 'woocommerce_mc2p_icon', plugins_url( 'assets/images/icons/mc2p.png' , __FILE__ ) );
             $this->has_fields         = false;
             $this->method_title       = __( 'MyChoice2Pay', 'wc-gateway-mc2p' );
             $this->method_description = __( 'Allows to receive payments from several payment gateways while offering the possibility of dividing payments between several people.', 'wc-gateway-mc2p' );
@@ -104,6 +104,7 @@ function wc_mc2p_gateway_init() {
             $this->description  = $this->get_option( 'description' );
             $this->thank_you_text = $this->get_option( 'thank_you_text', $this->description );
             $this->set_completed = $this->get_option( 'set_completed', 'N' );
+            $this->icon = $this->get_option( 'icon', $this->icon );
 
             // Actions
             add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
@@ -200,6 +201,13 @@ function wc_mc2p_gateway_init() {
                         'Y' => __( 'Yes', 'wc-gateway-mc2p' ),
                     ),
                     'default'     => 'N'
+                ),
+
+                'icon' => array(
+                    'title'   => __( 'Icon', 'wc-gateway-mc2p' ),
+                    'type'    => 'text',
+                    'label'   => __( 'Icon to show in the order page', 'wc-gateway-mc2p' ),
+                    'default' => apply_filters( 'woocommerce_mc2p_icon', plugins_url( 'assets/images/icons/mc2p.png' , __FILE__ ) )
                 ),
             ) );
         }
