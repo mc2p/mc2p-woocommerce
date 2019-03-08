@@ -5,7 +5,7 @@
  * Description: WooCommerce library for the MyChoice2Pay API.
  * Author: MyChoice2Pay
  * Author URI: https://www.mychoice2pay.com/
- * Version: 1.2.3
+ * Version: 1.2.4
  * Text Domain: wc_mc2p_payment_gateway
  * Domain Path: /i18n/languages/
  *
@@ -61,7 +61,7 @@ add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'wc_mc2p_gatew
  *
  * @class 		WC_Gateway_MC2P
  * @extends		WC_Payment_Gateway
- * @version		1.2.3
+ * @version		1.2.4
  * @package		WooCommerce/Classes/Payment
  * @author 		MyChoice2Pay
  */
