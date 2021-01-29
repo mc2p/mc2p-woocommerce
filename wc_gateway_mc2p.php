@@ -329,12 +329,18 @@ function wc_mc2p_gateway_init() {
 
 			$country = '';
 			$email = '';
+            $first_name = '';
+            $last_name = '';
 			if ( version_compare( WOOCOMMERCE_VERSION, '3.0', '<' ) ) {
                 $country = $order->billing_country;
-				$email = $order->billing_email;
+                $email = $order->billing_email;
+                $first_name = $order->billing_first_name;
+                $last_name = $order->billing_last_name;
             } else {
                 $country = $order->get_billing_country();
 				$email = $order->get_billing_email();
+                $first_name = $order->get_billing_first_name();
+                $last_name = $order->get_billing_last_name();
             }
 
             // Create transaction
@@ -357,7 +363,9 @@ function wc_mc2p_gateway_init() {
                     ),
 					"extra" => array(
 						"email" => $email,
-						"country" => $country
+						"country" => $country,
+						"first_name" => $first_name,
+						"last_name" => $last_name
 					)
                 )
             );
