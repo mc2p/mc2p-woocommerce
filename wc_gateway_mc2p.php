@@ -5,7 +5,7 @@
  * Description: WooCommerce library for the MyChoice2Pay API.
  * Author: MyChoice2Pay
  * Author URI: https://www.mychoice2pay.com/
- * Version: 1.2.6
+ * Version: 1.2.7
  * Text Domain: wc_mc2p_payment_gateway
  * Domain Path: /i18n/languages/
  *
@@ -61,7 +61,7 @@ add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'wc_mc2p_gatew
  *
  * @class 		WC_Gateway_MC2P
  * @extends		WC_Payment_Gateway
- * @version		1.2.6
+ * @version		1.2.7
  * @package		WooCommerce/Classes/Payment
  * @author 		MyChoice2Pay
  */
@@ -115,19 +115,10 @@ function wc_mc2p_gateway_init() {
             add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
             add_action( 'woocommerce_thankyou_' . $this->id, array( $this, 'thankyou_page' ) );
 
-            // Customer Emails
-            add_action( 'woocommerce_email_before_order_table', array( $this, 'email_instructions' ), 10, 3 );
-
-            switch ( $this->protocol ) {
-                case 'HTTP':
-                    $this->notify_url   = str_ireplace( 'https:', 'http:', add_query_arg( 'wc-api', 'WC_Gateway_MC2P', home_url( '/' ) ) );
-                break;
-                case 'HTTPS':
-                    $this->notify_url   = str_ireplace( 'http:', 'https:', add_query_arg( 'wc-api', 'WC_Gateway_MC2P', home_url( '/' ) ) );
-                break;
-                default:
-                    $this->notify_url = add_query_arg( 'wc-api', 'WC_Gateway_MC2P', home_url( '/' ) );
-                break;
+            if ( empty( $_SERVER['HTTPS'] ) ) {
+                $this->notify_url   = str_ireplace( 'https:', 'http:', add_query_arg( 'wc-api', 'WC_Gateway_MC2P', home_url( '/' ) ) );
+            } else {
+                $this->notify_url   = str_ireplace( 'http:', 'https:', add_query_arg( 'wc-api', 'WC_Gateway_MC2P', home_url( '/' ) ) );
             }
 
             // Actions
@@ -335,16 +326,19 @@ function wc_mc2p_gateway_init() {
 			$email = '';
             $first_name = '';
             $last_name = '';
+            $postal_code = '';
 			if ( version_compare( WOOCOMMERCE_VERSION, '3.0', '<' ) ) {
                 $country = $order->billing_country;
                 $email = $order->billing_email;
                 $first_name = $order->billing_first_name;
                 $last_name = $order->billing_last_name;
+                $postal_code = $order->billing_postcode;
             } else {
                 $country = $order->get_billing_country();
 				$email = $order->get_billing_email();
                 $first_name = $order->get_billing_first_name();
                 $last_name = $order->get_billing_last_name();
+                $postal_code = $order->get_billing_postcode();
             }
 
             // Create transaction
@@ -369,7 +363,8 @@ function wc_mc2p_gateway_init() {
 						"email" => $email,
 						"country" => $country,
 						"first_name" => $first_name,
-						"last_name" => $last_name
+						"last_name" => $last_name,
+                        "billing_postal_code" => $postal_code
 					)
                 )
             );
