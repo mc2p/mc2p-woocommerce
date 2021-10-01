@@ -229,14 +229,24 @@ class CardShareObjectItemMixin extends ObjectItemMixin
  */
 class PayURLMixin extends ObjectItemMixin
 {
-    const PAY_URL = 'https://pay.mychoice2pay.com/#/';
+    const PAY_URL = 'https://pay.mychoice2pay.com/';
     
     public function getPayUrl()
     {   
         if ($this->hasID() && $this->__isNotDeleted()) 
         {
             $token = $this->payload->token;
-            return self::PAY_URL."{$token}";
+            $language = $this->payload->language;
+            switch ( $language ) {
+                case 'au':
+                case 'es':
+                    $language = '';
+                    break;
+                default:
+                    $language = $language.'/';
+                    break;
+            }
+            return self::PAY_URL."{$language}"."{$token}";
         }
     }
     

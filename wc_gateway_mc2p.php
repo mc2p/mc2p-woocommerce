@@ -288,10 +288,31 @@ function wc_mc2p_gateway_init() {
                 switch ( $customer_language ) {
                     case 'es':
                         $language = 'es';
-                    break;
+                        break;
                     case 'en':
                         $language = 'en';
-                    break;
+                        break;
+                    case 'pt':
+                        $language = 'pt';
+                        break;
+                    case 'ca':
+                        $language = 'ca';
+                        break;
+                    case 'de':
+                        $language = 'de';
+                        break;
+                    case 'it':
+                        $language = 'it';
+                        break;
+                    case 'fr':
+                        $language = 'fr';
+                        break;
+                    case 'gl':
+                        $language = 'gl';
+                        break;
+                    case 'eu':
+                        $language = 'eu';
+                        break;
                 }
             }
 
