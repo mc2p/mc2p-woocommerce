@@ -82,9 +82,6 @@ function wc_mc2p_gateway_init() {
     
     class WC_Gateway_MC2P extends WC_Payment_Gateway {
 
-        $WAY_REDIRECT = 'redirect';
-        $WAY_IFRAME = 'iframe';
-
         public $supports = array(
             'subscriptions',
             'refunds'
@@ -94,6 +91,9 @@ function wc_mc2p_gateway_init() {
          * Constructor for the gateway.
          */
         public function __construct() {
+
+            $this->WAY_REDIRECT = 'redirect';
+            $this->WAY_IFRAME = 'iframe';
 
             $this->id                 = 'mc2p_gateway';
             $this->icon               = apply_filters( 'woocommerce_mc2p_icon', plugins_url( 'assets/images/icons/mc2p.png' , __FILE__ ) );
@@ -111,7 +111,7 @@ function wc_mc2p_gateway_init() {
             $this->secret_key   = $this->get_option( 'mc2p_secret_key' );
             $this->description  = $this->get_option( 'mc2p_description' );
             $this->thank_you_text = $this->get_option( 'mc2p_thank_you_text', $this->description );
-            $this->way = $this->get_option( 'mc2p_way', $WAY_REDIRECT );
+            $this->way = $this->get_option( 'mc2p_way', $this->WAY_REDIRECT );
             $this->set_completed = $this->get_option( 'mc2p_set_completed', 'N' );
             $this->icon = $this->get_option( 'mc2p_icon', $this->icon );
 
@@ -199,10 +199,10 @@ function wc_mc2p_gateway_init() {
                     'type'        => 'select',
                     'description' => __( 'Way to integrate MyChoice2Pay.', 'wc-gateway-mc2p' ),
                     'options'     => array(
-                        $WAY_REDIRECT => __( 'Redirect', 'wc-gateway-mc2p' ),
-                        $WAY_IFRAME => __( 'iFrame', 'wc-gateway-mc2p' )
+                        $this->WAY_REDIRECT => __( 'Redirect', 'wc-gateway-mc2p' ),
+                        $this->WAY_IFRAME => __( 'iFrame', 'wc-gateway-mc2p' )
                     ),
-                    'default'     => $WAY_REDIRECT
+                    'default'     => $this->WAY_REDIRECT
                 ),
                 'mc2p_set_completed' => array(
                     'title'       => __( 'Set order as completed after payment?', 'wc-gateway-mc2p' ),
@@ -250,7 +250,7 @@ function wc_mc2p_gateway_init() {
          */
         public function process_payment( $order_id ) {
 
-            if ( $this->way == $WAY_REDIRECT ) {
+            if ( $this->way == $this->WAY_REDIRECT ) {
                 return $this->start_process_payment( $order_id );
             }
 
@@ -327,7 +327,7 @@ function wc_mc2p_gateway_init() {
                 $obj = $this->process_regular_payment( $mc2p, $order, $language, $order_id );
             }
 
-            if ( $this->way == $WAY_IFRAME ) {
+            if ( $this->way == $this->WAY_IFRAME ) {
 				echo '<iframe src="'.$obj->getIframeUrl().'" frameBorder="0" style="width: 100%; height: 700px"></iframe>';
             } else {
 				return array(
