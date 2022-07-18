@@ -29,10 +29,13 @@ class MC2PClient
         $this->coupon = new CouponResource($this->apiRequest, '/coupon/', 'MC2P\Coupon');
         $this->transaction = new TransactionResource($this->apiRequest, '/transaction/', 'MC2P\Transaction');
         $this->subscription = new SubscriptionResource($this->apiRequest, '/subscription/', 'MC2P\Subscription');
+        $this->authorization = new AuthorizationResource($this->apiRequest, '/authorization/', 'MC2P\Authorization');
         $this->currency = new CurrencyResource($this->apiRequest, '/currency/', 'MC2P\Currency');
         $this->gateway = new GatewayResource($this->apiRequest, '/gateway/', 'MC2P\Gateway');
         $this->payData = new PayDataResource($this->apiRequest, '/pay/', 'MC2P\PayData');
         $this->sale = new SaleResource($this->apiRequest, '/sale/', 'MC2P\Sale');
+        $this->client = new ClientResource($this->apiRequest, '/client/', 'MC2P\Client');
+        $this->wallet = new WalletResource($this->apiRequest, '/wallet/', 'MC2P\Wallet');
     }
 
     /**
@@ -104,6 +107,14 @@ class MC2PClient
     /**
      * @param array   $payload
      */
+    public function Authorization ($payload = array()) 
+    {   
+        return $this->__wrapper('MC2P\Authorization', $this->authorization, $payload);
+    }
+
+    /**
+     * @param array   $payload
+     */
     public function Sale ($payload = array()) 
     {
         return $this->__wrapper('MC2P\Sale', $this->sale, $payload);
@@ -131,6 +142,22 @@ class MC2PClient
     public function PayData ($payload = array()) 
     {
         return $this->__wrapper('MC2P\PayData', $this->payData, $payload);
+    }
+
+    /**
+     * @param array   $payload
+     */
+    public function Client ($payload = array()) 
+    {
+        return $this->__wrapper('MC2P\Client', $this->client, $payload);
+    }
+
+    /**
+     * @param array   $payload
+     */
+    public function Wallet ($payload = array()) 
+    {
+        return $this->__wrapper('MC2P\Wallet', $this->wallet, $payload);
     }
 
     /**

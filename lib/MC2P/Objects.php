@@ -41,6 +41,49 @@ class Transaction extends PayURLCRObjectItem {}
 class Subscription extends PayURLCRObjectItem {}
 
 /**
+ * Authorization object
+ */
+class Authorization extends PayURLCRObjectItem 
+{
+    protected $cMixin;
+    protected $rMixin;
+    
+    /**
+     * @param array    $payload
+     * @param string   $resource
+     */
+    public function __construct ($payload, $resource) 
+    {
+        $this->cMixin = new ChargeObjectItemMixin($payload, $resource);
+        $this->rMixin = new RemoveObjectItemMixin($payload, $resource);
+        parent::__construct($payload, $resource);
+    }
+    
+    /**
+     * Charge the object item
+     * 
+     * @param array $data
+     * @return array Object item from server
+     */
+    public function charge(Array $data = null)
+    {
+        $this->cMixin->payload = $this->payload;
+        return $this->cMixin->charge($data);
+    }
+    
+    /**
+     * Remove authorization the object item
+     * 
+     * @return array Object item from server
+     */
+    public function remove()
+    {
+        $this->rMixin->payload = $this->payload;
+        return $this->rMixin->remove();
+    }
+}
+
+/**
  * Currency object
  */
 class Currency extends ReadOnlyObjectItem {}
@@ -148,3 +191,13 @@ class PayData extends ReadOnlyObjectItem
         return $this->cardShareMixin->share($data);        
     }
 }
+
+/**
+ * Client object
+ */
+class Client extends CRUDObjectItem {}
+
+/**
+ * Wallet object
+ */
+class Wallet extends CRUDObjectItem {}

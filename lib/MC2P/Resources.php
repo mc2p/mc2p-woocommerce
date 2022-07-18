@@ -42,6 +42,48 @@ class TransactionResource extends CRResource {}
 class SubscriptionResource extends CRResource {}
 
 /**
+ * Authorization resource
+ */
+class AuthorizationResource extends CRResource 
+{
+
+    protected $cResourceMixin;
+    protected $rResourceMixin;
+    
+    /**
+     * @param array    $apiRequest
+     */
+    public function __construct ($apiRequest, $path, $objItemClass) 
+    {
+        parent::__construct($apiRequest, $path, $objItemClass);
+        $this->cResourceMixin = new ChargeResourceMixin($apiRequest, $path, $objItemClass, $this->paginatorClass);
+        $this->rResourceMixin = new RemoveResourceMixin($apiRequest, $path, $objItemClass, $this->paginatorClass);
+    }
+        
+    /**
+     * Charge the object item
+     * 
+     * @param array $data
+     * @return array Object item from server
+     */
+    public function charge($resourceId, Array $data = null)
+    {
+        return $this->cResourceMixin->charge($resourceId, $data);
+    }
+        
+    /**
+     * Remove authorization the object item
+     * 
+     * @return array Object item from server
+     */
+    public function remove($resourceId)
+    {
+        return $this->rResourceMixin->remove($resourceId);
+    }
+
+}
+
+/**
  * Currency resource
  */
 class CurrencyResource extends ReadOnlyResource {}
@@ -64,7 +106,7 @@ class SaleResource extends ReadOnlyResource
     public function __construct ($apiRequest, $path, $objItemClass) 
     {
         parent::__construct($apiRequest, $path, $objItemClass);
-        $rCVResourceMixin = new RefundCaptureVoidResourceMixin($apiRequest, $path, $objItemClass, $this->paginatorClass);
+        $this->rCVResourceMixin = new RefundCaptureVoidResourceMixin($apiRequest, $path, $objItemClass, $this->paginatorClass);
     }
         
     /**
@@ -73,9 +115,9 @@ class SaleResource extends ReadOnlyResource
      * @param array $data
      * @return array Object item from server
      */
-    public function refund(Array $data = null)
+    public function refund($resourceId, Array $data = null)
     {
-        return $this->rCVResourceMixin->refund($data);
+        return $this->rCVResourceMixin->refund($resourceId, $data);
     }
 
     /**
@@ -84,9 +126,9 @@ class SaleResource extends ReadOnlyResource
      * @param array $data
      * @return array Object item from server
      */
-    public function capture(Array $data = null)
+    public function capture($resourceId, Array $data = null)
     {
-        return $this->rCVResourceMixin->capture($data);
+        return $this->rCVResourceMixin->capture($resourceId, $data);
     }
 
     /**
@@ -95,9 +137,9 @@ class SaleResource extends ReadOnlyResource
      * @param array $data
      * @return array Object item from server
      */
-    public function void(Array $data = null)
+    public function void($resourceId, Array $data = null)
     {
-        return $this->rCVResourceMixin->void($data);
+        return $this->rCVResourceMixin->void($resourceId, $data);
     }
 }
   
@@ -114,7 +156,7 @@ class PayDataResource extends DetailOnlyResource
     public function __construct ($apiRequest, $path, $objItemClass) 
     {
         parent::__construct($apiRequest, $path, $objItemClass);
-        $cardShareResourceMixin = new CardShareResourceMixin($apiRequest, $path, $objItemClass, $this->paginatorClass);
+        $this->cardShareResourceMixin = new CardShareResourceMixin($apiRequest, $path, $objItemClass, $this->paginatorClass);
     }
 
     /**
@@ -140,3 +182,13 @@ class PayDataResource extends DetailOnlyResource
         return $this->cardShareResourceMixin->share($data);        
     }
 }
+
+/**
+ * Client resource
+ */
+class ClientResource extends CRUDResource {}
+
+/**
+ * Wallet resource
+ */
+class WalletResource extends CRUDResource {}

@@ -29,6 +29,14 @@ class MC2PError extends Exception
     }
 
     /**
+     * @return $jsonBody
+     */
+    public function getJsonBody() 
+    {
+        return $this->jsonBody;
+    }
+
+    /**
      * @return string Error type and response
      */
     public function __toString() 

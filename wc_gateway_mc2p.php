@@ -120,10 +120,13 @@ function wc_mc2p_gateway_init() {
             add_action( 'woocommerce_thankyou_' . $this->id, array( $this, 'thankyou_page' ) );
 
             $this->notify_url = add_query_arg( 'wc-api', 'WC_Gateway_MC2P', home_url( '/' ) );
-            if ( 'yes' === get_option( 'woocommerce_force_ssl_checkout' ) || is_ssl() ) {
-                $this->notify_url   = str_ireplace( 'https:', 'http:',  $this->notify_url );
-            } else {
-                $this->notify_url   = str_ireplace( 'http:', 'https:', $this->notify_url );
+            switch ( $this->protocol ) {
+                case 'HTTP':
+                    $this->notify_url   = str_ireplace( 'https:', 'http:',  $this->notify_url );
+                    break;
+                case 'HTTPS':
+                    $this->notify_url   = str_ireplace( 'http:', 'https:', $this->notify_url );
+                    break;
             }
 
             // Actions
@@ -536,10 +539,12 @@ function wc_mc2p_gateway_init() {
                 // If the amount is set, refund that amount, otherwise the entire amount is refunded
                 if ( $amount ) {
                     $refund_data['amount'] = $amount;
+                } else {
+                    $refund_data['amount'] = $order->get_total();
                 }
                 $response = $sale->refund($refund_data);
                 if ( $response->success ) {
-                    $order->add_order_note( __( 'MC2P Refund Amount: ', 'wc-gateway-mc2p' ).$refund_data->amount );
+                    $order->add_order_note( __( 'MC2P Refund Amount: ', 'wc-gateway-mc2p' ).$refund_data['amount'] );
                     return true;
                 } else {
                     $order->add_order_note($error_message);

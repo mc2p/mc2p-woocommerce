@@ -127,6 +127,31 @@ class NotificationData
     }
 
     /**
+     * @return string Authorization generated when payment was created
+     */
+    public function getAuthorization() 
+    {
+        $t = $this->getType(); 
+
+        if ($t != 'A') 
+        {
+            return null;
+        }
+
+        $id = $this->getId();
+        if (isset($id)) {
+            $authorization = $this->mc2p->Authorization(
+                array(
+                    "id" => $id
+                )
+            );
+            $authorization->retrieve();
+            return $authorization;
+        }
+        return null;
+    }
+
+    /**
      * @return string Sale generated when payment was paid
      */
     public function getSale() 
