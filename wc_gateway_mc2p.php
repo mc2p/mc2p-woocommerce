@@ -82,8 +82,12 @@ function wc_mc2p_gateway_init() {
     
     class WC_Gateway_MC2P extends WC_Payment_Gateway {
 
+        $WAY_REDIRECT = 'redirect';
+        $WAY_IFRAME = 'iframe';
+
         public $supports = array(
-            'subscriptions'
+            'subscriptions',
+            'refunds'
         );
 
         /**
@@ -102,23 +106,24 @@ function wc_mc2p_gateway_init() {
             $this->init_settings();
 
             // Define user set variables
-            $this->title        = $this->get_option( 'title' );
-            $this->key          = $this->get_option( 'key' );
-            $this->secret_key   = $this->get_option( 'secret_key' );
-            $this->description  = $this->get_option( 'description' );
-            $this->thank_you_text = $this->get_option( 'thank_you_text', $this->description );
-            $this->way = $this->get_option( 'way', 'redirect' );
-            $this->set_completed = $this->get_option( 'set_completed', 'N' );
-            $this->icon = $this->get_option( 'icon', $this->icon );
+            $this->title        = $this->get_option( 'mc2p_title' );
+            $this->key          = $this->get_option( 'mc2p_key' );
+            $this->secret_key   = $this->get_option( 'mc2p_secret_key' );
+            $this->description  = $this->get_option( 'mc2p_description' );
+            $this->thank_you_text = $this->get_option( 'mc2p_thank_you_text', $this->description );
+            $this->way = $this->get_option( 'mc2p_way', $WAY_REDIRECT );
+            $this->set_completed = $this->get_option( 'mc2p_set_completed', 'N' );
+            $this->icon = $this->get_option( 'mc2p_icon', $this->icon );
 
             // Actions
             add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
             add_action( 'woocommerce_thankyou_' . $this->id, array( $this, 'thankyou_page' ) );
 
-            if ( empty( $_SERVER['HTTPS'] ) ) {
-                $this->notify_url   = str_ireplace( 'https:', 'http:', add_query_arg( 'wc-api', 'WC_Gateway_MC2P', home_url( '/' ) ) );
+            $this->notify_url = add_query_arg( 'wc-api', 'WC_Gateway_MC2P', home_url( '/' ) );
+            if ( 'yes' === get_option( 'woocommerce_force_ssl_checkout' ) || is_ssl() ) {
+                $this->notify_url   = str_ireplace( 'https:', 'http:',  $this->notify_url );
             } else {
-                $this->notify_url   = str_ireplace( 'http:', 'https:', add_query_arg( 'wc-api', 'WC_Gateway_MC2P', home_url( '/' ) ) );
+                $this->notify_url   = str_ireplace( 'http:', 'https:', $this->notify_url );
             }
 
             // Actions
@@ -143,14 +148,14 @@ function wc_mc2p_gateway_init() {
 
             $this->form_fields = apply_filters( 'wc_mc2p_form_fields', array(
 
-                'enabled' => array(
+                'mc2p_enabled' => array(
                     'title'   => __( 'Enable/Disable', 'wc-gateway-mc2p' ),
                     'type'    => 'checkbox',
                     'label'   => __( 'Enable MyChoice2Pay Gateway', 'wc-gateway-mc2p' ),
                     'default' => 'yes'
                 ),
 
-                'key' => array(
+                'mc2p_key' => array(
                     'title'       => __( 'Key', 'wc-gateway-mc2p' ),
                     'type'        => 'text',
                     'description' => __( 'Key obtained in MyChoice2Pay.com', 'wc-gateway-mc2p' ),
@@ -158,7 +163,7 @@ function wc_mc2p_gateway_init() {
                     'desc_tip'    => true,
                 ),
 
-                'secret_key' => array(
+                'mc2p_secret_key' => array(
                     'title'       => __( 'Secret Key', 'wc-gateway-mc2p' ),
                     'type'        => 'text',
                     'description' => __( 'Secret Key obtained in MyChoice2Pay.com', 'wc-gateway-mc2p' ),
@@ -166,7 +171,7 @@ function wc_mc2p_gateway_init() {
                     'desc_tip'    => true,
                 ),
 
-                'title' => array(
+                'mc2p_title' => array(
                     'title'       => __( 'Title', 'wc-gateway-mc2p' ),
                     'type'        => 'text',
                     'description' => __( 'This controls the title for the payment method the customer sees during checkout', 'wc-gateway-mc2p' ),
@@ -174,7 +179,7 @@ function wc_mc2p_gateway_init() {
                     'desc_tip'    => true,
                 ),
 
-                'description' => array(
+                'mc2p_description' => array(
                     'title'       => __( 'Description', 'wc-gateway-mc2p' ),
                     'type'        => 'textarea',
                     'description' => __( 'Payment method description that the customer will see on your checkout', 'wc-gateway-mc2p' ),
@@ -182,24 +187,24 @@ function wc_mc2p_gateway_init() {
                     'desc_tip'    => true,
                 ),
 
-                'thank_you_text' => array(
+                'mc2p_thank_you_text' => array(
                     'title'       => __( 'Text in thank you page', 'wc-gateway-mc2p' ),
                     'type'        => 'textarea',
                     'description' => __( 'Text that will be added to the thank you page', 'wc-gateway-mc2p' ),
                     'default'     => '',
                     'desc_tip'    => true,
                 ),
-                'way' => array(
+                'mc2p_way' => array(
                     'title'       => __( 'Integration', 'wc-gateway-mc2p' ),
                     'type'        => 'select',
                     'description' => __( 'Way to integrate MyChoice2Pay.', 'wc-gateway-mc2p' ),
                     'options'     => array(
-                        'redirect' => __( 'Redirect', 'wc-gateway-mc2p' ),
-                        'iframe' => __( 'iFrame', 'wc-gateway-mc2p' )
+                        $WAY_REDIRECT => __( 'Redirect', 'wc-gateway-mc2p' ),
+                        $WAY_IFRAME => __( 'iFrame', 'wc-gateway-mc2p' )
                     ),
-                    'default'     => 'redirect'
+                    'default'     => $WAY_REDIRECT
                 ),
-                'set_completed' => array(
+                'mc2p_set_completed' => array(
                     'title'       => __( 'Set order as completed after payment?', 'wc-gateway-mc2p' ),
                     'type'        => 'select',
                     'description' => __( 'After payment, should the order be set as completed? Default is "processing".', 'wc-gateway-mc2p' ),
@@ -211,7 +216,7 @@ function wc_mc2p_gateway_init() {
                     'default'     => 'N'
                 ),
 
-                'icon' => array(
+                'mc2p_icon' => array(
                     'title'   => __( 'Icon', 'wc-gateway-mc2p' ),
                     'type'    => 'text',
                     'label'   => __( 'Icon to show in the order page', 'wc-gateway-mc2p' ),
@@ -245,14 +250,14 @@ function wc_mc2p_gateway_init() {
          */
         public function process_payment( $order_id ) {
 
-            if ( $this->way == 'redirect' ) {
+            if ( $this->way == $WAY_REDIRECT ) {
                 return $this->start_process_payment( $order_id );
             }
 
             $order = wc_get_order( $order_id );
 
             if ( version_compare( WOOCOMMERCE_VERSION, '2.1', '<' ) ) {
-                $redirect_url = add_query_arg('order', $order->id, add_query_arg('key', $order->order_key, get_permalink(woocommerce_get_page_id('pay'))));
+                $redirect_url = add_query_arg('order', $order->get_id(), add_query_arg('key', $order->get_order_key(), get_permalink(woocommerce_get_page_id('pay'))));
             } else {
                 $redirect_url = $order->get_checkout_payment_url( true );
             }
@@ -322,7 +327,7 @@ function wc_mc2p_gateway_init() {
                 $obj = $this->process_regular_payment( $mc2p, $order, $language, $order_id );
             }
 
-            if ( $this->way == 'iframe' ) {
+            if ( $this->way == $WAY_IFRAME ) {
 				echo '<iframe src="'.$obj->getIframeUrl().'" frameBorder="0" style="width: 100%; height: 700px"></iframe>';
             } else {
 				return array(
@@ -385,7 +390,11 @@ function wc_mc2p_gateway_init() {
 						"country" => $country,
 						"first_name" => $first_name,
 						"last_name" => $last_name,
-                        "billing_postal_code" => $postal_code
+                        "billing_postal_code" => $postal_code,
+                        "mc2p_lib" => array(
+                            "name" => "woocommerce",
+                            "version" => "1.2.8"
+                        )
 					)
                 )
             );
@@ -405,14 +414,23 @@ function wc_mc2p_gateway_init() {
          */
         public function process_subscription_payment( $mc2p, $order, $language, $order_id ) {
 
-			$country = '';
+            $country = '';
 			$email = '';
+            $first_name = '';
+            $last_name = '';
+            $postal_code = '';
 			if ( version_compare( WOOCOMMERCE_VERSION, '3.0', '<' ) ) {
                 $country = $order->billing_country;
-				$email = $order->billing_email;
+                $email = $order->billing_email;
+                $first_name = $order->billing_first_name;
+                $last_name = $order->billing_last_name;
+                $postal_code = $order->billing_postcode;
             } else {
                 $country = $order->get_billing_country();
 				$email = $order->get_billing_email();
+                $first_name = $order->get_billing_first_name();
+                $last_name = $order->get_billing_last_name();
+                $postal_code = $order->get_billing_postcode();
             }
 
             $unconverted_periods = array(
@@ -461,13 +479,78 @@ function wc_mc2p_gateway_init() {
                     ),
 					"extra" => array(
 						"email" => $email,
-						"country" => $country
+						"country" => $country,
+						"first_name" => $first_name,
+						"last_name" => $last_name,
+                        "billing_postal_code" => $postal_code,
+                        "mc2p_lib" => array(
+                            "name" => "woocommerce",
+                            "version" => "1.2.8"
+                        )
 					)
                 )
             );
             $subscription->save();
 
             return $subscription;
+        }
+        
+        /**
+         * Process refund
+         *
+         * Overriding refund method
+         *
+         * @param       int $order_id
+         * @param       float $amount
+         * @param       string $reason
+         * @return      mixed True or False based on success, or WP_Error
+         */
+        public function process_refund( $order_id, $amount = null, $reason = '' ) {
+            $order = wc_get_order( $order_id );
+
+            $sale_id = $order->get_transaction_id();
+            if ( !$sale_id ) {
+                return new WP_Error( 'mc2p_gateway_wc_refund_error',
+                    sprintf(
+                        __( 'Refund %s failed because Transaction ID is empty.', 'wc-gateway-mc2p' ),
+                        get_class( $this )
+                    )
+                );
+            }
+
+            $error_message = sprintf(
+                __( 'Refund %s failed', 'wc-gateway-mc2p' ),
+                get_class( $this )
+            );
+
+            try {
+                $mc2p = new MC2P\MC2PClient($this->key, $this->secret_key);
+                $sale = $mc2p->Sale(
+                    array(
+                        'id' => $sale_id
+                    )
+                );
+                $sale->retrieve();
+
+                $refund_data = array();
+                // If the amount is set, refund that amount, otherwise the entire amount is refunded
+                if ( $amount ) {
+                    $refund_data['amount'] = $amount;
+                }
+                $response = $sale->refund($refund_data);
+                if ( $response->success ) {
+                    $order->add_order_note( __( 'MC2P Refund Amount: ', 'wc-gateway-mc2p' ).$refund_data->amount );
+                    return true;
+                } else {
+                    $order->add_order_note($error_message);
+                    return new WP_Error( 'mc2p_gateway_wc_refund_error', $error_message );
+                }
+            } catch ( Exception $e ) {
+                $order->add_order_note($error_message);
+                // Something failed somewhere, send a message.
+                return new WP_Error( 'mc2p_gateway_wc_refund_error', $error_message );
+            }
+            return false;
         }
 
         /**
@@ -497,9 +580,12 @@ function wc_mc2p_gateway_init() {
                              wp_die();
                         }
 
+                        $sale = $notification_data->getSale();
+
                         // Payment completed
                         $order->add_order_note( __('MC2P payment completed', 'wc-gateway-mc2p') );
-                        $order->payment_complete();
+                        $order->add_order_note( __('MC2P Sale ID: ', 'wc-gateway-mc2p').$sale->id );
+                        $order->payment_complete( $sale->id );
 
                         // Set order as completed if user did set up it
                         if ( 'Y' == $this->set_completed ) {
