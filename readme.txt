@@ -1,7 +1,7 @@
 === WooCommerce MyChoice2Pay Payment Gateway ===
 Contributors: MyChoice2Pay
 Tags: mychoice2pay, mc2p, payments, gateway, divvy, credit card, paypal, paga+tarde, redsys, bitcoin
-Stable tag: 1.2.8
+Stable tag: 1.2.9
 Tested up to: 6.0
 License: GNU General Public License v3.0
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
